@@ -1,5 +1,4 @@
 import nacl from "tweetnacl";
-import { PrismaClient } from "@prisma/client";
 import { Router } from "express";
 import {
   S3Client,
@@ -12,6 +11,7 @@ import { authMiddleware } from "../middleware";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { createTaskInput } from "../types";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
+import { prismaClient } from "../db";
 
 const connection = new Connection(process.env.RPC_URL ?? "");
 
@@ -28,8 +28,6 @@ const s3Client = new S3Client({
 });
 
 const router = Router();
-
-const prismaClient = new PrismaClient();
 
 router.get("/task", authMiddleware, async (req, res) => {
   // @ts-ignore

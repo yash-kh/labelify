@@ -1,10 +1,9 @@
 import nacl from "tweetnacl";
-import { PrismaClient } from "@prisma/client";
 import { Router } from "express";
 import jwt from "jsonwebtoken";
 import { workerMiddleware } from "../middleware";
 import { TOTAL_DECIMALS, WORKER_JWT_SECRET } from "../config";
-import { getNextTask } from "../db";
+import { getNextTask, prismaClient } from "../db";
 import { createSubmissionInput } from "../types";
 import {
   Connection,
@@ -17,11 +16,10 @@ import {
 } from "@solana/web3.js";
 import { privateKey } from "../privateKey";
 import { decode } from "bs58";
+import { startWorker } from "../worker";
 const connection = new Connection(process.env.RPC_URL ?? "");
 
 const TOTAL_SUBMISSIONS = 100;
-
-const prismaClient = new PrismaClient();
 
 const router = Router();
 
@@ -106,6 +104,8 @@ router.post("/payout", workerMiddleware, async (req, res) => {
       timeout: 10000, // default: 5000
     },
   );
+
+  startWorker();
 
   res.json({
     message: "Processing payout",
