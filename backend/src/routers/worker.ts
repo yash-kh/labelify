@@ -73,10 +73,12 @@ router.post("/payout", workerMiddleware, async (req, res) => {
     });
   }
 
+  let wallet;
+
   // We should add a lock here
   await prismaClient.$transaction(
     async (tx) => {
-      await tx.worker.update({
+      let wallet =await tx.worker.update({
         where: {
           id: Number(userId),
         },
@@ -107,7 +109,8 @@ router.post("/payout", workerMiddleware, async (req, res) => {
 
   res.json({
     message: "Processing payout",
-    amount: worker.pending_amount,
+    pendingAmount: worker.pending_amount / TOTAL_DECIMALS,
+    lockedAmount: worker.locked_amount / TOTAL_DECIMALS,
   });
 });
 
@@ -130,6 +133,46 @@ router.get("/balance", workerMiddleware, async (req, res) => {
   return res.json({
     pendingAmount: worker.pending_amount / TOTAL_DECIMALS,
     lockedAmount: worker.locked_amount / TOTAL_DECIMALS,
+  });
+});
+
+router.post("/getPayouts", workerMiddleware, async (req, res) => {
+  // @ts-ignore
+  const userId: string = req.userId;
+
+  const {limit, offset} = req.body;
+
+  const worker = await prismaClient.worker.findFirst({
+    where: {
+      id: Number(userId),
+    },
+  });
+
+  const count = await prismaClient.payouts.count({
+    where: {
+      worker_id: Number(userId),
+    },
+  });
+
+  if (!worker || count === 0) {
+    return res.status(411).json({
+      message: "No payouts found",
+    });
+  }
+
+  const payouts = await prismaClient.payouts.findMany({
+    where: {
+      worker_id: Number(userId),
+    },
+    take: Number(limit),
+    skip: Number(offset),
+  });
+
+  return res.json({
+    pendingAmount: worker.pending_amount / TOTAL_DECIMALS,
+    lockedAmount: worker.locked_amount / TOTAL_DECIMALS,
+    payouts: payouts,
+    totalCount: count
   });
 });
 

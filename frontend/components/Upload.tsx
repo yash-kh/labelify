@@ -11,37 +11,45 @@ export const Upload = ({ isVerified }: { isVerified: boolean }) => {
   const [images, setImages] = useState<string[]>([]);
   const [title, setTitle] = useState("");
   const [txSignature, setTxSignature] = useState("");
+  const [paymentLoading, setPaymentLoading] = useState(false);
   const { publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
   const router = useRouter();
 
-  async function onSubmit() {
-    const response = await axios.post(
-      `${BACKEND_URL}/v1/user/task`,
-      {
-        options: images.map((image) => ({
-          imageUrl: image,
-        })),
-        title,
-        signature: txSignature,
-      },
-      {
-        headers: {
-          Authorization: localStorage.getItem("token"),
+  async function onSubmit(signature: string) {
+    try {
+      const response = await axios.post(
+        `${BACKEND_URL}/v1/user/task`,
+        {
+          options: images.map((image) => ({
+            imageUrl: image,
+          })),
+          title,
+          signature: signature,
         },
-      },
-    );
+        {
+          headers: {
+            Authorization: localStorage.getItem("token"),
+          },
+        }
+      );
 
-    router.push(`/user/task/${response.data.id}`);
+      clearInterval(submitInterval);
+      setPaymentLoading(false);
+      router.push(`/user/task/${response.data.id}`);
+    } catch (error) {
+      console.error("Submit failed, retrying...", error);
+    }
   }
 
   async function makePayment() {
+    setPaymentLoading(true);
     const transaction = new Transaction().add(
       SystemProgram.transfer({
         fromPubkey: publicKey!,
         toPubkey: new PublicKey("CLjzEzsPLYLeTY4VctXjjAeAJDdpymcUM3reqfjXgvMC"),
         lamports: 100000000,
-      }),
+      })
     );
 
     const {
@@ -49,13 +57,18 @@ export const Upload = ({ isVerified }: { isVerified: boolean }) => {
       value: { blockhash, lastValidBlockHeight },
     } = await connection.getLatestBlockhashAndContext();
 
-    const signature = await sendTransaction(transaction, connection, {
-      minContextSlot,
-    });
-
-    // await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
-    setTxSignature(signature);
+    try {
+      const signature = await sendTransaction(transaction, connection, {
+        minContextSlot,
+      });
+      submitInterval = setInterval(() => onSubmit(signature), 6000);
+    } catch (error) {
+      console.error(error);
+      setPaymentLoading(false);
+    }
   }
+
+  let submitInterval: NodeJS.Timeout;
 
   return (
     <div className="flex justify-center pb-10">
@@ -108,11 +121,12 @@ export const Upload = ({ isVerified }: { isVerified: boolean }) => {
 
             <div className="flex justify-center">
               <button
-                onClick={txSignature ? onSubmit : makePayment}
+                onClick={makePayment}
                 type="button"
                 className="mt-4 px-4 py-2 bg-violet-800 text-white rounded hover:bg-slate-900"
+                disabled={paymentLoading}
               >
-                {txSignature ? "Submit Task" : "Pay 0.1 SOL"}
+                {paymentLoading ? "Submitting..." : "Pay 0.1 SOL and Submit Task"}
               </button>
             </div>
           </>

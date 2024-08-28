@@ -18,7 +18,6 @@ export const Appbar = ({
   setIsVerified: any;
 }) => {
   const { publicKey, signMessage } = useWallet();
-  const [balance, setBalance] = useState(0);
   const pathname = usePathname();
   const page = pathname?.split("/")[1];
 
@@ -38,8 +37,6 @@ export const Appbar = ({
       },
     );
 
-    setBalance(response.data.amount);
-
     setIsVerified(true);
     localStorage.setItem("token", response.data.token);
   }
@@ -51,35 +48,13 @@ export const Appbar = ({
     }
   }, [publicKey]);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setIsVerified(false);
-    } else {
-      if (page !== "user") {
-        axios
-          .get(`${BACKEND_URL}/v1/worker/balance`, {
-            headers: {
-              Authorization: localStorage.getItem("token"),
-            },
-          })
-          .then((res) => {
-            setBalance(res.data.pendingAmount);
-          })
-          .catch((e) => {
-            console.log(e);
-          });
-      }
-    }
-  }, []);
-
   return (
     <div className="flex justify-between border-b pb-2 pt-2">
       <div className="flex">
         <Link
           className={
             "text-2xl pl-4 flex justify-center pt-2 cursor-pointer" +
-            (pathname === "/" + page ? " text-violet-800" : "")
+            (pathname === "/" + page ? " text-violet-500" : "")
           }
           href={`/${page}`}
         >
@@ -89,33 +64,26 @@ export const Appbar = ({
           <Link
             className={
               "text-1xl pl-8 flex justify-center pt-3.5 cursor-pointer" +
-              (pathname === "/" + page + "/task" ? " text-violet-800" : "")
+              (pathname === "/" + page + "/task" ? " text-violet-500" : "")
             }
             href={`/${page}/task`}
           >
             tasks
           </Link>
         )}
+        {isVerified && page !== "user" && (
+          <Link
+            className={
+              "text-1xl pl-8 flex justify-center pt-3.5 cursor-pointer" +
+              (pathname === "/" + page + "/payouts" ? " text-violet-500" : "")
+            }
+            href={`/${page}/payouts`}
+          >
+            payouts
+          </Link>
+        )}
       </div>
       <div className="text-xl pr-4 flex">
-        {isVerified && page !== "user" && (
-          <button
-            onClick={() => {
-              axios.post(
-                `${BACKEND_URL}/v1/worker/payout`,
-                {},
-                {
-                  headers: {
-                    Authorization: localStorage.getItem("token"),
-                  },
-                },
-              );
-            }}
-            className="px-4 bg-violet-800 text-white rounded hover:bg-slate-900 mr-2"
-          >
-            Pay me out ({balance}) SOL
-          </button>
-        )}
         {publicKey && !isVerified && (
           <button
             className="px-4 bg-violet-800 text-white rounded hover:bg-slate-900 mr-2"

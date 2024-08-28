@@ -48,7 +48,7 @@ export function UploadImage({
   if (image) {
     return (
       <img
-        className="p-2 w-96 rounded shadow-lg transition-transform duration-300 ease-in-out hover:scale-105"
+        className="p-2 w-96 object-contain rounded shadow-lg transition-transform duration-300 ease-in-out hover:scale-105"
         src={image}
       />
     );
@@ -66,6 +66,7 @@ export function UploadImage({
               <input
                 className="absolute inset-0 opacity-0 cursor-pointer"
                 type="file"
+                accept="image/*"
                 onChange={onFileSelect}
               />
             </>
