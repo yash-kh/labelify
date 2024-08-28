@@ -10,7 +10,6 @@ import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 export const Upload = ({ isVerified }: { isVerified: boolean }) => {
   const [images, setImages] = useState<string[]>([]);
   const [title, setTitle] = useState("");
-  const [txSignature, setTxSignature] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
   const { publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
@@ -35,7 +34,7 @@ export const Upload = ({ isVerified }: { isVerified: boolean }) => {
       );
 
       clearInterval(submitInterval);
-      setPaymentLoading(false);
+      // setPaymentLoading(false);
       router.push(`/user/task/${response.data.id}`);
     } catch (error) {
       console.error("Submit failed, retrying...", error);
@@ -43,11 +42,18 @@ export const Upload = ({ isVerified }: { isVerified: boolean }) => {
   }
 
   async function makePayment() {
+    if (images.length < 2) {
+      // need to add toast
+      console.log("Please upload at least 2 images");
+      return;
+    }
     setPaymentLoading(true);
     const transaction = new Transaction().add(
       SystemProgram.transfer({
         fromPubkey: publicKey!,
-        toPubkey: new PublicKey("CLjzEzsPLYLeTY4VctXjjAeAJDdpymcUM3reqfjXgvMC"),
+        toPubkey: new PublicKey(
+          process.env.NEXT_PUBLIC_WALLET_PUBLIC_KEY ?? "",
+        ),
         lamports: 100000000,
       }),
     );
@@ -61,7 +67,7 @@ export const Upload = ({ isVerified }: { isVerified: boolean }) => {
       const signature = await sendTransaction(transaction, connection, {
         minContextSlot,
       });
-      submitInterval = setInterval(() => onSubmit(signature), 6000);
+      submitInterval = setInterval(() => onSubmit(signature), 4000);
     } catch (error) {
       console.error(error);
       setPaymentLoading(false);
@@ -73,13 +79,15 @@ export const Upload = ({ isVerified }: { isVerified: boolean }) => {
   return (
     <div className="flex justify-center pb-10">
       <div className="max-w-screen-lg w-full">
-        <div className="text-2xl text-center pt-20 w-full">
-          {isVerified
-            ? "Create a task"
-            : "Connect your wallet and verify your account to create a task"}
-        </div>
+        {!paymentLoading && (
+          <div className="text-2xl text-center pt-20 w-full">
+            {isVerified
+              ? "Create a task"
+              : "Connect your wallet and verify your account to create a task"}
+          </div>
+        )}
 
-        {isVerified && (
+        {isVerified && !paymentLoading && (
           <>
             <label className="block mt-2 text-md font-medium text-white">
               Task details
@@ -92,7 +100,7 @@ export const Upload = ({ isVerified }: { isVerified: boolean }) => {
               type="text"
               id="first_name"
               className="mt-1 bg-gray-50 border border-gray-300 text-black text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              placeholder="What is your task?"
+              placeholder="This is what labelers will see!"
               required
             />
 
@@ -132,6 +140,14 @@ export const Upload = ({ isVerified }: { isVerified: boolean }) => {
               </button>
             </div>
           </>
+        )}
+
+        {isVerified && paymentLoading && (
+          <div className="flex justify-center">
+            <div className="text-2xl text-center pt-20 w-full">
+              Submitting please wait...
+            </div>
+          </div>
         )}
       </div>
     </div>

@@ -43,6 +43,12 @@ export default function Page({
     });
   }, [taskId]);
 
+  // Calculate total votes
+  const totalVotes = Object.values(result).reduce(
+    (sum, task) => sum + task.count,
+    0,
+  );
+
   return (
     <div className="bg-black text-white min-h-screen flex flex-col">
       <Appbar isVerified={true} setIsVerified={() => {}} />
@@ -56,6 +62,7 @@ export default function Page({
               key={taskId}
               imageUrl={result[taskId].option.imageUrl}
               votes={result[taskId].count}
+              totalVotes={totalVotes}
             />
           ))}
         </div>
@@ -72,7 +79,18 @@ export default function Page({
   );
 }
 
-function Task({ imageUrl, votes }: { imageUrl: string; votes: number }) {
+function Task({
+  imageUrl,
+  votes,
+  totalVotes,
+}: {
+  imageUrl: string;
+  votes: number;
+  totalVotes: number;
+}) {
+  // Calculate percentage
+  const percentage = totalVotes > 0 ? (votes / totalVotes) * 100 : 0;
+
   return (
     <div className="bg-gray-800 p-4 rounded-md text-center">
       <img
@@ -80,7 +98,14 @@ function Task({ imageUrl, votes }: { imageUrl: string; votes: number }) {
         src={imageUrl}
         alt="Task Image"
       />
-      <div className="text-lg font-medium">{votes} Votes</div>
+      <div className="text-lg font-medium mb-2">{votes} Votes</div>
+      <div className="relative w-full h-2 bg-gray-600 rounded">
+        <div
+          className="absolute top-0 left-0 h-full bg-blue-500 rounded"
+          style={{ width: `${percentage}%` }}
+        ></div>
+      </div>
+      <div className="text-sm text-gray-400 mt-1">{percentage.toFixed(1)}%</div>
     </div>
   );
 }

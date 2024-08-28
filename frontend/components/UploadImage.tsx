@@ -16,6 +16,12 @@ export function UploadImage({
     setUploading(true);
     try {
       const file = e.target.files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File must be less than 5MB");
+        setUploading(false);
+        return;
+      }
+
       const response = await axios.get(`${BACKEND_URL}/v1/user/presignedUrl`, {
         headers: {
           Authorization: localStorage.getItem("token"),
