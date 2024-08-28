@@ -71,7 +71,7 @@ export async function startWorker() {
         console.log(
           `Payout ${payout.id} which was ${payout.status} is now ${
             transaction?.meta?.err ? "Failed" : "Success"
-          }`
+          }`,
         );
       } else if (transaction?.meta?.err) {
         await prismaClient.$transaction(async (tx) => {
@@ -100,7 +100,7 @@ export async function startWorker() {
         });
 
         console.log(
-          `Payout ${payout.id} which was ${payout.status} is now Failed`
+          `Payout ${payout.id} which was ${payout.status} is now Failed`,
         );
       }
     } catch (e) {

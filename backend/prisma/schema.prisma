@@ -17,7 +17,7 @@ model Worker {
   id             Int          @id @default(autoincrement())
   address        String       @unique
   submissions    Submission[]
-  pending_amount Int // amount in lamports (* 10^9)
+  pending_amount Int
   locked_amount  Int
   payouts        Payouts[]
 }

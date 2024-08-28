@@ -26,7 +26,7 @@ const router = Router();
 router.post("/payout", workerMiddleware, async (req, res) => {
   // @ts-ignore
   const userId: string = req.userId;
-  const worker = await prismaClient.worker.findFirst({
+  const worker = await prismaClient.worker.findUnique({
     where: { id: Number(userId) },
   });
 
@@ -52,17 +52,8 @@ router.post("/payout", workerMiddleware, async (req, res) => {
 
   const keypair = Keypair.fromSecretKey(decode(privateKey));
 
-  // TODO: There's a double spending problem here
-  // The user can request the withdrawal multiple times
-  // Can u figure out a way to fix it?
   let signature = "";
   try {
-    // signature = await sendAndConfirmTransaction(
-    //     connection,
-    //     transaction,
-    //     [keypair],
-    // );
-
     signature = await connection.sendTransaction(transaction, [keypair]);
   } catch (e: any) {
     console.log(e);
@@ -71,12 +62,12 @@ router.post("/payout", workerMiddleware, async (req, res) => {
     });
   }
 
-  let wallet;
-
-  // We should add a lock here
   await prismaClient.$transaction(
     async (tx) => {
-      let wallet =await tx.worker.update({
+      // Lock the row with a `FOR UPDATE` clause
+      await tx.$executeRaw`SELECT * FROM "worker" WHERE "id" = ${Number(userId)} FOR UPDATE`;
+
+      await tx.worker.update({
         where: {
           id: Number(userId),
         },
@@ -109,8 +100,6 @@ router.post("/payout", workerMiddleware, async (req, res) => {
 
   res.json({
     message: "Processing payout",
-    pendingAmount: worker.pending_amount / TOTAL_DECIMALS,
-    lockedAmount: worker.locked_amount / TOTAL_DECIMALS,
   });
 });
 
@@ -140,7 +129,7 @@ router.post("/getPayouts", workerMiddleware, async (req, res) => {
   // @ts-ignore
   const userId: string = req.userId;
 
-  const {limit, offset} = req.body;
+  const { limit, offset } = req.body;
 
   const worker = await prismaClient.worker.findFirst({
     where: {
@@ -172,7 +161,7 @@ router.post("/getPayouts", workerMiddleware, async (req, res) => {
     pendingAmount: worker.pending_amount / TOTAL_DECIMALS,
     lockedAmount: worker.locked_amount / TOTAL_DECIMALS,
     payouts: payouts,
-    totalCount: count
+    totalCount: count,
   });
 });
 

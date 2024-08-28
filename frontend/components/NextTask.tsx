@@ -75,7 +75,9 @@ export const NextTask = ({ isVerified }: { isVerified: boolean }) => {
       <div className="text-lg font-bold text-slate-400 pt-3">
         Select the most appealing option
       </div>
-      {submitting && <div className="text-lg text-gray-500 mt-2">Submitting...</div>}
+      {submitting && (
+        <div className="text-lg text-gray-500 mt-2">Submitting...</div>
+      )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 pt-8 m-8">
         {currentTask.options.map((option) => (
           <Option
@@ -94,7 +96,7 @@ export const NextTask = ({ isVerified }: { isVerified: boolean }) => {
                     headers: {
                       Authorization: localStorage.getItem("token"),
                     },
-                  }
+                  },
                 );
 
                 const nextTask = response.data.nextTask;

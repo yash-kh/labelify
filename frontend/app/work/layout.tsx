@@ -7,7 +7,6 @@ import {
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 
-// Default styles that can be overridden by your app
 require("@solana/wallet-adapter-react-ui/styles.css");
 
 export default function RootLayout({
@@ -17,7 +16,6 @@ export default function RootLayout({
 }>) {
   const network = WalletAdapterNetwork.Mainnet;
 
-  // You can also provide a custom RPC endpoint.
   const endpoint =
     process.env.NEXT_PUBLIC_SOL_RPC ?? "https://api.devnet.solana.com";
 

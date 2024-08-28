@@ -29,7 +29,7 @@ export const Payouts = () => {
           headers: {
             Authorization: localStorage.getItem("token"),
           },
-        }
+        },
       )
       .then((res) => {
         if (offset === 0) {
@@ -78,20 +78,24 @@ export const Payouts = () => {
                       headers: {
                         Authorization: localStorage.getItem("token"),
                       },
-                    }
+                    },
                   )
                   .then(() => {
                     fetchPayouts();
-                  }).catch((e) => {
+                  })
+                  .catch((e) => {
                     console.log(e);
-                  }).finally(() => {
+                  })
+                  .finally(() => {
                     setPayoutLoading(false);
                   });
               }}
               className="px-4 py-2 mt-2 bg-violet-800 text-white rounded hover:bg-slate-900 mr-2"
               disabled={payoutLoading}
             >
-              {payoutLoading ? "Loading..." : `Pay me out (${pendingAmount}) SOL`}
+              {payoutLoading
+                ? "Loading..."
+                : `Pay me out (${pendingAmount}) SOL`}
             </button>
           </div>
           <div className="mt-8 grid gap-4 max-w-2xl mx-auto">

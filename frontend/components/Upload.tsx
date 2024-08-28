@@ -31,7 +31,7 @@ export const Upload = ({ isVerified }: { isVerified: boolean }) => {
           headers: {
             Authorization: localStorage.getItem("token"),
           },
-        }
+        },
       );
 
       clearInterval(submitInterval);
@@ -49,7 +49,7 @@ export const Upload = ({ isVerified }: { isVerified: boolean }) => {
         fromPubkey: publicKey!,
         toPubkey: new PublicKey("CLjzEzsPLYLeTY4VctXjjAeAJDdpymcUM3reqfjXgvMC"),
         lamports: 100000000,
-      })
+      }),
     );
 
     const {
@@ -126,7 +126,9 @@ export const Upload = ({ isVerified }: { isVerified: boolean }) => {
                 className="mt-4 px-4 py-2 bg-violet-800 text-white rounded hover:bg-slate-900"
                 disabled={paymentLoading}
               >
-                {paymentLoading ? "Submitting..." : "Pay 0.1 SOL and Submit Task"}
+                {paymentLoading
+                  ? "Submitting..."
+                  : "Pay 0.1 SOL and Submit Task"}
               </button>
             </div>
           </>
