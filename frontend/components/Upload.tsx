@@ -58,7 +58,7 @@ export const Upload = ({ isVerified }: { isVerified: boolean }) => {
   }
 
   return (
-    <div className="flex justify-center">
+    <div className="flex justify-center pb-10">
       <div className="max-w-screen-lg w-full">
         <div className="text-2xl text-center pt-20 w-full">
           {isVerified
@@ -78,7 +78,7 @@ export const Upload = ({ isVerified }: { isVerified: boolean }) => {
               }}
               type="text"
               id="first_name"
-              className="mt-1 bg-gray-50 border border-gray-300 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              className="mt-1 bg-gray-50 border border-gray-300 text-black text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               placeholder="What is your task?"
               required
             />
@@ -86,7 +86,7 @@ export const Upload = ({ isVerified }: { isVerified: boolean }) => {
             <label className="block mt-8 text-md font-medium text-white">
               Add Images
             </label>
-            <div className="flex justify-center pt-4 max-w-screen-lg">
+            <div className="flex flex-wrap justify-center pt-4 max-w-screen-lg">
               {images.map((image) => (
                 <UploadImage
                   key={image}
@@ -110,7 +110,7 @@ export const Upload = ({ isVerified }: { isVerified: boolean }) => {
               <button
                 onClick={txSignature ? onSubmit : makePayment}
                 type="button"
-                className="mt-4 text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-full text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700"
+                className="mt-4 px-4 py-2 bg-violet-800 text-white rounded hover:bg-slate-900"
               >
                 {txSignature ? "Submit Task" : "Pay 0.1 SOL"}
               </button>

@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   ConnectionProvider,
   WalletProvider,
@@ -15,7 +15,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const network = WalletAdapterNetwork.Devnet;
-  const endpoint = process.env.NEXT_PUBLIC_SOL_RPC ?? "https://api.devnet.solana.com";
+  const endpoint =
+    process.env.NEXT_PUBLIC_SOL_RPC ?? "https://api.devnet.solana.com";
 
   const wallets = useMemo(() => [], [network]);
 

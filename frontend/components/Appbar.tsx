@@ -75,12 +75,28 @@ export const Appbar = ({
 
   return (
     <div className="flex justify-between border-b pb-2 pt-2">
-      <Link
-        className="text-2xl pl-4 flex justify-center pt-2 cursor-pointer"
-        href={`/${page}`}
-      >
-        labelify
-      </Link>
+      <div className="flex">
+        <Link
+          className={
+            "text-2xl pl-4 flex justify-center pt-2 cursor-pointer" +
+            (pathname === "/" + page ? " text-violet-800" : "")
+          }
+          href={`/${page}`}
+        >
+          labelify
+        </Link>
+        {isVerified && page === "user" && (
+          <Link
+            className={
+              "text-1xl pl-8 flex justify-center pt-3.5 cursor-pointer" +
+              (pathname === "/" + page + "/task" ? " text-violet-800" : "")
+            }
+            href={`/${page}/task`}
+          >
+            tasks
+          </Link>
+        )}
+      </div>
       <div className="text-xl pr-4 flex">
         {isVerified && page !== "user" && (
           <button
