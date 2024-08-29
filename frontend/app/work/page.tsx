@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <div className="bg-black text-white min-h-screen">
       <Appbar isVerified={isVerified} setIsVerified={setIsVerified} />
-      <NextTask isVerified={isVerified} />
+      <NextTask isVerified={isVerified} setIsVerified={setIsVerified} />
     </div>
   );
 }

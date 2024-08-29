@@ -49,18 +49,37 @@ export const Appbar = ({
     }
   }, [publicKey]);
 
+  useEffect(() => {
+    if (localStorage.getItem("page")) {
+      if (page !== localStorage.getItem("page")) {
+        localStorage.clear();
+        setIsVerified(false);
+      }
+    } else {
+      localStorage.setItem("page", page);
+    }
+  }, []);
+
   return (
     <div className="flex justify-between border-b pb-2 pt-2">
       <div className="flex">
         <Link
-          className={
-            "text-2xl pl-4 flex justify-center pt-2 cursor-pointer" +
-            (pathname === "/" + page ? " text-violet-500" : "")
-          }
-          href={`/${page}`}
+          className="text-2xl pl-4 flex justify-center pt-2 cursor-pointer"
+          href={`/`}
         >
           labelify
         </Link>
+        {isVerified && (
+          <Link
+            className={
+              "text-1xl pl-8 flex justify-center pt-3.5 cursor-pointer" +
+              (pathname === "/" + page ? " text-violet-500" : "")
+            }
+            href={`/${page}`}
+          >
+            Home
+          </Link>
+        )}
         {isVerified && page === "user" && (
           <Link
             className={

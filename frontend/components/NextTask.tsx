@@ -14,7 +14,13 @@ interface Task {
   }[];
 }
 
-export const NextTask = ({ isVerified }: { isVerified: boolean }) => {
+export const NextTask = ({
+  isVerified,
+  setIsVerified,
+}: {
+  isVerified: boolean;
+  setIsVerified: any;
+}) => {
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -37,7 +43,11 @@ export const NextTask = ({ isVerified }: { isVerified: boolean }) => {
         setCurrentTask(res.data.task);
         setLoading(false);
       })
-      .catch(() => {
+      .catch((e) => {
+        if (e.response.status === 403) {
+          setIsVerified(false);
+          localStorage.clear();
+        }
         setLoading(false);
         setCurrentTask(null);
       });
