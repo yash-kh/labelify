@@ -6,7 +6,7 @@ import {
   PutObjectCommand,
 } from "@aws-sdk/client-s3";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET, TOTAL_DECIMALS } from "../config";
+import { JWT_SECRET, TOTAL_DECIMALS, TOTAL_SUBMISSIONS } from "../config";
 import { authMiddleware } from "../middleware";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { createTaskInput } from "../types";
@@ -178,9 +178,9 @@ router.post("/task", authMiddleware, async (req, res) => {
         data: {
           title: parseData.data.title || DEFAULT_TITLE,
           amount: 0.1 * TOTAL_DECIMALS,
-          //TODO: Signature should be unique in the table else people can reuse a signature
           signature: parseData.data.signature,
           user_id: userId,
+          remainingSubmissions: 1,
         },
       });
 
@@ -226,6 +226,15 @@ router.get("/presignedUrl", authMiddleware, async (req, res) => {
 router.post("/signin", async (req, res) => {
   const { publicKey, signature } = req.body;
   const message = new TextEncoder().encode("Sign into mechanical labelify");
+
+  if (signature.data === undefined) {
+    let temp: any = [];
+    Object.keys(signature).forEach((key) => {
+      temp.push(signature[key]);
+    });
+
+    signature.data = temp;
+  }
 
   const result = nacl.sign.detached.verify(
     message,

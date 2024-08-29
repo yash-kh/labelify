@@ -30,7 +30,11 @@ export const TaskList = () => {
         },
       )
       .then((res) => {
-        setTaskList((prevTasks) => [...prevTasks, ...res.data.tasks]);
+        if (offset === 0) {
+          setTaskList(res.data.tasks);
+        } else {
+          setTaskList((prevTasks) => [...prevTasks, ...res.data.tasks]);
+        }
         setTotalCount(res.data.totalCount);
         setOffset((prevOffset) => prevOffset + limit);
         setLoading(false);
@@ -58,12 +62,15 @@ export const TaskList = () => {
       ) : (
         <>
           <div className="mt-8 grid gap-4 max-w-2xl mx-auto">
-            {taskList.map((task) => (
+            {taskList.map((task, i) => (
               <Link key={task.id} href={`/user/task/${task.id}`}>
-                <div className="p-4 bg-gray-800 rounded-lg shadow-lg hover:bg-gray-700 transition duration-300">
+                <div className="flex p-4 bg-gray-800 rounded-lg shadow-lg hover:bg-gray-700 transition duration-300">
                   <h2 className="text-xl font-semibold text-white">
-                    {task.title}
+                    {i + 1}:{" "}
+                    {String(task.title).substring(0, 25) +
+                      (task.title.length > 25 ? "..." : "")}
                   </h2>
+                  <div className="ml-auto">{task.done ? "✅" : ""}</div>
                 </div>
               </Link>
             ))}

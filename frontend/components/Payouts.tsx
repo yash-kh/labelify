@@ -103,7 +103,7 @@ export const Payouts = () => {
               <div key={task.id}>
                 <div className="p-4 bg-gray-800 rounded-lg shadow-lg transition duration-300">
                   <h2 className="text-xl font-semibold text-white">
-                    {task.amount} : {task.status}
+                    {task.amount} SOL - Status: {task.status}
                   </h2>
                 </div>
               </div>

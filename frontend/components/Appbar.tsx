@@ -7,7 +7,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { BACKEND_URL } from "@/utils";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 
 export const Appbar = ({
@@ -20,6 +20,7 @@ export const Appbar = ({
   const { publicKey, signMessage } = useWallet();
   const pathname = usePathname();
   const page = pathname?.split("/")[1];
+  const router = useRouter();
 
   async function signAndSend() {
     if (!publicKey) {
@@ -96,6 +97,7 @@ export const Appbar = ({
           <WalletDisconnectButton
             onClick={() => {
               localStorage.removeItem("token");
+              router.push(`/${page}`);
             }}
           />
         ) : (

@@ -23,15 +23,16 @@ model Worker {
 }
 
 model Task {
-  id          Int          @id @default(autoincrement())
-  title       String?      @default("Select the most clickable thumbnail")
-  options     Option[]
-  user_id     Int
-  signature   String
-  amount      Int
-  done        Boolean      @default(false)
-  user        User         @relation(fields: [user_id], references: [id])
-  submissions Submission[]
+  id                   Int          @id @default(autoincrement())
+  title                String?      @default("Select the most clickable thumbnail")
+  options              Option[]
+  user_id              Int
+  signature            String       @unique
+  amount               Int
+  done                 Boolean      @default(false)
+  user                 User         @relation(fields: [user_id], references: [id])
+  remainingSubmissions Int
+  submissions          Submission[]
 }
 
 model Option {

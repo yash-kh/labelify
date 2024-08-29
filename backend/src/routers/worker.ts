@@ -2,7 +2,11 @@ import nacl from "tweetnacl";
 import { Router } from "express";
 import jwt from "jsonwebtoken";
 import { workerMiddleware } from "../middleware";
-import { TOTAL_DECIMALS, WORKER_JWT_SECRET } from "../config";
+import {
+  TOTAL_DECIMALS,
+  TOTAL_SUBMISSIONS,
+  WORKER_JWT_SECRET,
+} from "../config";
 import { getNextTask, prismaClient } from "../db";
 import { createSubmissionInput } from "../types";
 import {
@@ -18,8 +22,6 @@ import { privateKey } from "../privateKey";
 import { decode } from "bs58";
 import { startWorker } from "../worker";
 const connection = new Connection(process.env.RPC_URL ?? "");
-
-const TOTAL_SUBMISSIONS = 100;
 
 const router = Router();
 
@@ -62,39 +64,46 @@ router.post("/payout", workerMiddleware, async (req, res) => {
     });
   }
 
-  await prismaClient.$transaction(
-    async (tx) => {
-      // Lock the row with a `FOR UPDATE` clause
-      await tx.$executeRaw`SELECT * FROM "worker" WHERE "id" = ${Number(userId)} FOR UPDATE`;
+  try {
+    await prismaClient.$transaction(
+      async (tx) => {
+        // Lock the row with a `FOR UPDATE` clause
+        await tx.$executeRaw`SELECT * FROM "Worker" WHERE "id" = ${Number(userId)} FOR UPDATE`;
 
-      await tx.worker.update({
-        where: {
-          id: Number(userId),
-        },
-        data: {
-          pending_amount: {
-            decrement: worker.pending_amount,
+        await tx.worker.update({
+          where: {
+            id: Number(userId),
           },
-          locked_amount: {
-            increment: worker.pending_amount,
+          data: {
+            pending_amount: {
+              decrement: worker.pending_amount,
+            },
+            locked_amount: {
+              increment: worker.pending_amount,
+            },
           },
-        },
-      });
+        });
 
-      await tx.payouts.create({
-        data: {
-          worker_id: Number(userId),
-          amount: worker.pending_amount,
-          status: "Processing",
-          signature: signature,
-        },
-      });
-    },
-    {
-      maxWait: 5000, // default: 2000
-      timeout: 10000, // default: 5000
-    },
-  );
+        await tx.payouts.create({
+          data: {
+            worker_id: Number(userId),
+            amount: worker.pending_amount,
+            status: "Processing",
+            signature: signature,
+          },
+        });
+      },
+      {
+        maxWait: 5000, // default: 2000
+        timeout: 10000, // default: 5000
+      },
+    );
+  } catch (e: any) {
+    console.log(e);
+    return res.json({
+      message: "Transaction failed",
+    });
+  }
 
   startWorker();
 
@@ -137,17 +146,17 @@ router.post("/getPayouts", workerMiddleware, async (req, res) => {
     },
   });
 
+  if (!worker) {
+    return res.status(411).json({
+      message: "User not found",
+    });
+  }
+
   const count = await prismaClient.payouts.count({
     where: {
       worker_id: Number(userId),
     },
   });
-
-  if (!worker || count === 0) {
-    return res.status(411).json({
-      message: "No payouts found",
-    });
-  }
 
   const payouts = await prismaClient.payouts.findMany({
     where: {
@@ -155,6 +164,10 @@ router.post("/getPayouts", workerMiddleware, async (req, res) => {
     },
     take: Number(limit),
     skip: Number(offset),
+  });
+
+  payouts.forEach((payout) => {
+    payout.amount = payout.amount / TOTAL_DECIMALS;
   });
 
   return res.json({
@@ -172,50 +185,74 @@ router.post("/submission", workerMiddleware, async (req, res) => {
   const parsedBody = createSubmissionInput.safeParse(body);
 
   if (parsedBody.success) {
-    const task = await getNextTask(Number(userId));
-    if (!task || task?.id !== Number(parsedBody.data.taskId)) {
-      return res.status(411).json({
-        message: "Incorrect task id",
-      });
-    }
-
-    const amount = (Number(task.amount) / TOTAL_SUBMISSIONS).toString();
-
-    const submission = await prismaClient.$transaction(
-      async (tx) => {
-        const submission = await tx.submission.create({
-          data: {
-            option_id: Number(parsedBody.data.selection),
-            worker_id: userId,
-            task_id: Number(parsedBody.data.taskId),
-            amount: Number(amount),
-          },
+    try {
+      const task = await getNextTask(Number(userId));
+      if (!task || task?.id !== Number(parsedBody.data.taskId)) {
+        return res.status(411).json({
+          message: "Incorrect task id",
         });
+      }
 
-        await tx.worker.update({
-          where: {
-            id: userId,
-          },
-          data: {
-            pending_amount: {
-              increment: Number(amount),
+      const amount = (Number(task.amount) / TOTAL_SUBMISSIONS).toString();
+
+      const submission = await prismaClient.$transaction(
+        async (tx) => {
+          const submission = await tx.submission.create({
+            data: {
+              option_id: Number(parsedBody.data.selection),
+              worker_id: userId,
+              task_id: Number(parsedBody.data.taskId),
+              amount: Number(amount),
             },
-          },
-        });
+          });
 
-        return submission;
-      },
-      {
-        maxWait: 5000, // default: 2000
-        timeout: 10000, // default: 5000
-      },
-    );
+          const task = await tx.task.update({
+            where: {
+              id: Number(parsedBody.data.taskId),
+            },
+            data: {
+              remainingSubmissions: {
+                decrement: 1,
+              },
+            },
+          });
 
-    const nextTask = await getNextTask(Number(userId));
-    res.json({
-      nextTask,
-      amount,
-    });
+          if (task.remainingSubmissions <= 0) {
+            await tx.task.update({
+              where: {
+                id: Number(parsedBody.data.taskId),
+              },
+              data: {
+                done: true,
+              },
+            });
+          }
+
+          await tx.worker.update({
+            where: {
+              id: userId,
+            },
+            data: {
+              pending_amount: {
+                increment: Number(amount),
+              },
+            },
+          });
+
+          return submission;
+        },
+        {
+          maxWait: 5000, // default: 2000
+          timeout: 10000, // default: 5000
+        },
+      );
+
+      const nextTask = await getNextTask(Number(userId));
+      res.json({
+        nextTask,
+        amount,
+      });
+    } catch (error) {}
   } else {
     res.status(411).json({
       message: "Incorrect inputs",
@@ -245,6 +282,15 @@ router.post("/signin", async (req, res) => {
   const message = new TextEncoder().encode(
     "Sign into mechanical labelify as a worker",
   );
+
+  if (signature.data === undefined) {
+    let temp: any = [];
+    Object.keys(signature).forEach((key) => {
+      temp.push(signature[key]);
+    });
+
+    signature.data = temp;
+  }
 
   const result = nacl.sign.detached.verify(
     message,
