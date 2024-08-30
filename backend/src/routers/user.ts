@@ -185,7 +185,7 @@ router.post("/task", authMiddleware, async (req, res) => {
             amount: 0.1 * TOTAL_DECIMALS,
             signature: parseData.data.signature,
             user_id: userId,
-            remainingSubmissions: 1,
+            remainingSubmissions: TOTAL_SUBMISSIONS,
           },
         });
 
