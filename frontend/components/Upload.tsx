@@ -6,6 +6,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
+import { useToast } from "@/components/ui/use-toast";
 
 export const Upload = ({ isVerified }: { isVerified: boolean }) => {
   const [images, setImages] = useState<string[]>([]);
@@ -14,6 +15,7 @@ export const Upload = ({ isVerified }: { isVerified: boolean }) => {
   const { publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
   const router = useRouter();
+  const { toast } = useToast();
 
   async function onSubmit(signature: string) {
     try {
@@ -43,7 +45,11 @@ export const Upload = ({ isVerified }: { isVerified: boolean }) => {
 
   async function makePayment() {
     if (images.length < 2) {
-      // need to add toast
+      toast({
+        title: "Invalid submission",
+        description: "Please upload at least 2 images",
+        variant: "destructive",
+      });
       console.log("Please upload at least 2 images");
       return;
     }
@@ -107,15 +113,22 @@ export const Upload = ({ isVerified }: { isVerified: boolean }) => {
             <label className="block mt-8 text-md font-medium text-white">
               Add Images
             </label>
-            <div className="flex flex-wrap justify-center pt-4 max-w-screen-lg">
+            <div className="flex flex-wrap gap-8 justify-center pt-4 max-w-screen-lg">
               {images.map((image) => (
-                <UploadImage
-                  key={image}
-                  image={image}
-                  onImageAdded={(imageUrl) => {
-                    setImages((i) => [...i, imageUrl]);
-                  }}
-                />
+                <div key={image} className="relative">
+                  <div
+                    className="absolute top-[-20px] right-[-20px] text-red-500 z-10 cursor-pointer hover:scale-125 transition"
+                    onClick={() => setImages(images.filter((i) => i !== image))}
+                  >
+                    <div className="text-4xl">&times;</div>
+                  </div>
+                  <UploadImage
+                    image={image}
+                    onImageAdded={(imageUrl) => {
+                      setImages((i) => [...i, imageUrl]);
+                    }}
+                  />
+                </div>
               ))}
             </div>
 

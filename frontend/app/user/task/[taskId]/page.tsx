@@ -34,6 +34,8 @@ export default function Page({
   >({});
   const [taskDetails, setTaskDetails] = useState<{
     title?: string;
+    done?: boolean;
+    remainingSubmissions?: number;
   }>({});
 
   useEffect(() => {
@@ -56,6 +58,20 @@ export default function Page({
         <h1 className="text-3xl font-bold pt-20">
           Task: {taskDetails.title || "Loading..."}
         </h1>
+        <div>
+          <div className="text-lg text-gray-400 mt-4">
+            Submissions:{" "}
+            <span className="font-bold text-white">{totalVotes || 0}</span>,
+            Remaining Submissions:{" "}
+            <span className="font-bold text-white">
+              {taskDetails.remainingSubmissions || 0}
+            </span>
+            , Task Completed:{" "}
+            <span className="font-bold text-white">
+              {taskDetails.done ? "✅" : "❌"}
+            </span>
+          </div>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 pt-8 mx-8">
           {Object.keys(result || {}).map((taskId) => (
             <Task

@@ -7,7 +7,11 @@ export default function Home() {
     <div className="relative min-h-screen flex flex-col justify-center items-center bg-black text-white overflow-hidden">
       {/* Green box above the title */}
       <div className="absolute top-0 w-full flex justify-center pointer-events-none">
-        <div className="animate-appear-change-green w-52 h-52 bg-white mt-12 rounded-md"></div>
+        <div className="relative w-52 h-52 bg-white mt-12 rounded-md animate-appear-change-green">
+          <div className="absolute inset-0 flex justify-center items-center opacity-0 text-white text-4xl animate-show-check">
+            ✓
+          </div>
+        </div>
       </div>
 
       <h1 className="text-4xl font-bold m-2 z-10">Welcome to labelify</h1>
@@ -31,7 +35,11 @@ export default function Home() {
 
       {/* Red box below the buttons */}
       <div className="absolute bottom-0 w-full flex justify-center pointer-events-none">
-        <div className="animate-appear-change-red w-52 h-52 bg-white mb-20 rounded-md"></div>
+        <div className="relative w-52 h-52 bg-white mb-20 rounded-md animate-appear-change-red">
+          <div className="absolute inset-0 flex justify-center items-center opacity-0 text-white text-4xl animate-show-cross">
+            ✗
+          </div>
+        </div>
       </div>
     </div>
   );

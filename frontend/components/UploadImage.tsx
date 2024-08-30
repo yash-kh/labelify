@@ -2,6 +2,7 @@
 import { BACKEND_URL, CLOUDFRONT_URL } from "@/utils";
 import axios from "axios";
 import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
 export function UploadImage({
   onImageAdded,
@@ -12,12 +13,18 @@ export function UploadImage({
 }) {
   const [uploading, setUploading] = useState(false);
 
+  const { toast } = useToast();
+
   async function onFileSelect(e: any) {
     setUploading(true);
     try {
       const file = e.target.files[0];
       if (file.size > 5 * 1024 * 1024) {
-        alert("File must be less than 5MB");
+        toast({
+          title: "Invalid file size",
+          description: "File must be less than 5MB",
+          variant: "destructive",
+        });
         setUploading(false);
         return;
       }

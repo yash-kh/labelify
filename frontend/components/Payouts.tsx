@@ -61,11 +61,13 @@ export const Payouts = () => {
             <h1 className="text-3xl font-semibold text-white">Payouts</h1>
             <p className="text-lg text-gray-400 mt-4">
               Balance:{" "}
-              <span className="font-bold text-white mr-2">{pendingAmount}</span>{" "}
+              <span className="font-bold text-white">{pendingAmount}</span>,{" "}
               locked Amount:{" "}
-              <span className="font-bold text-white mr-2">{lockedAmount}</span>{" "}
+              <span className="font-bold text-white">{lockedAmount}</span>,{" "}
+              Pending Amount:{" "}
+              <span className="font-bold text-white">{pendingAmount}</span>,{" "}
               Total Payouts:{" "}
-              <span className="font-bold text-white mr-2">{totalCount}</span>
+              <span className="font-bold text-white">{totalCount}</span>
             </p>
             <button
               onClick={() => {
